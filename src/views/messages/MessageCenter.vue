@@ -1,4 +1,4 @@
-<!-- src\views\messages\MessageCenter.vue
+src\views\messages\MessageCenter.vue
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center mb-6">
@@ -154,7 +154,6 @@ import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMessageStore } from '@/stores/messageStore'
 import { useToast } from 'vue-toastification'
-import AreasDropdown from '@/components/forms/AreasDropdown.vue'
 import AppTable from '@/components/ui/AppTable.vue'
 
 const messageStore = useMessageStore()
@@ -196,4 +195,4 @@ const handleSend = async () => {
     isSending.value = false
   }
 }
-</script> -->
+</script>
