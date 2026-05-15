@@ -1,4 +1,4 @@
-<!--src\views\messages\MessageCenter.vue-->
+<!-- src\views\messages\MessageCenter.vue
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center mb-6">
@@ -196,4 +196,4 @@ const handleSend = async () => {
     isSending.value = false
   }
 }
-</script>
+</script> -->
