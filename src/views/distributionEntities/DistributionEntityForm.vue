@@ -1,4 +1,4 @@
-<!--src\views\distributionEntities\DistributionEntityForm.vue-->
+<!-- src\views\distributionEntities\DistributionEntityForm.vue -->
 <template>
   <form @submit.prevent="handleSubmit">
     <!-- تنبيه يظهر فقط في حالة التعديل -->
@@ -7,27 +7,12 @@
       class="mb-6 p-4 bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-500 rounded-md"
     >
       <p class="text-sm text-amber-800 dark:text-amber-200">
-        <span class="font-bold">ملاحظة:</span> أنت في وضع التعديل. لا يمكن تعديل "رقم الجهة"
-        لارتباطه بالسجلات المالية والمخزنية.
+        <span class="font-bold">ملاحظة:</span> أنت تقوم الآن بتعديل بيانات جهة توزيع مسجلة مسبقاً.
       </p>
     </div>
 
     <div class="space-y-5">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <!-- رقم الجهة (يُدخل يدوياً عند الإنشاء، معطل عند التعديل) -->
-        <div>
-          <AppInput
-            id="entity-id"
-            label="رقم الجهة (المعرف)"
-            v-model="form.id"
-            type="number"
-            placeholder="ادخل رقم الجهة"
-            :disabled="isEditMode"
-            required
-          />
-          <p v-if="errors.id" class="text-rose-500 text-xs mt-1 font-bold">يجب إدخال رقم الجهة</p>
-        </div>
-
         <!-- اسم الجهة -->
         <div>
           <AppInput
@@ -40,9 +25,7 @@
           />
           <p v-if="errors.name" class="text-rose-500 text-xs mt-1 font-bold">يجب إدخال اسم الجهة</p>
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <!-- المنطقة -->
         <div>
           <AppInput
@@ -53,7 +36,9 @@
             placeholder="ادخل اسم المنطقة أو المدينة"
           />
         </div>
+      </div>
 
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <!-- حالة التفعيل -->
         <div>
           <AppDropdown
@@ -107,14 +92,13 @@ const statusOptions = [
 
 // إدارة الأخطاء يدوياً
 const errors = reactive({
-  id: false,
   name: false,
 })
 
 const isEditMode = computed(() => !!props.initialData && !!props.initialData.id)
 
 const createFreshForm = () => ({
-  id: '',
+  id: null,
   name: '',
   region: '',
   is_active: true,
@@ -141,18 +125,9 @@ watch(
 
 const handleSubmit = () => {
   // إعادة تعيين الأخطاء
-  errors.id = false
   errors.name = false
 
   let hasError = false
-
-  // التحقق من المعرف فقط في حالة الإضافة
-  if (!isEditMode.value) {
-    if (!form.value.id || String(form.value.id).trim() === '') {
-      errors.id = true
-      hasError = true
-    }
-  }
 
   // التحقق من الاسم دائماً
   if (!form.value.name || form.value.name.trim() === '') {
@@ -164,11 +139,6 @@ const handleSubmit = () => {
 
   // تجهيز البيانات للإرسال
   const payload = { ...form.value }
-
-  // تحويل id إلى رقم ليتوافق مع الـ API Validation
-  if (!isEditMode.value) {
-    payload.id = Number(payload.id)
-  }
 
   emit('submit', payload)
 }

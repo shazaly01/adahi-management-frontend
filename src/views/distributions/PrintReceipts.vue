@@ -6,8 +6,8 @@
       <div>
         <h2 class="text-2xl font-bold text-indigo-700">معاينة الإيصالات (ملون)</h2>
         <p class="text-sm text-gray-500 mt-1">
-          يتم عرض الإيصالات بمقاس A5 (إيصالين في كل صفحة A4 - يرجى التأكد من أن إعداد الطباعة
-          Portrait)
+          تم تحديث النظام ليدعم السوق الليبي (د.ل) وتوضيح كميات الصرف للجهات والأفراد. يرجى التأكد
+          من أن إعداد الطباعة Portrait.
         </p>
       </div>
       <div class="flex gap-4">
@@ -49,7 +49,7 @@
     </div>
 
     <div
-      v-else-if="error"
+      v-if="error"
       class="flex flex-col justify-center items-center h-[80vh] no-print text-red-600"
     >
       <svg
@@ -80,7 +80,10 @@
         class="receipt-card relative bg-white overflow-hidden"
       >
         <div
-          class="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-indigo-600 to-indigo-400"
+          class="absolute top-0 left-0 w-full h-32 bg-gradient-to-r"
+          :class="
+            isBulkReceipt(receipt) ? 'from-rose-600 to-amber-500' : 'from-indigo-600 to-indigo-400'
+          "
         >
           <svg
             class="absolute bottom-0 w-full h-12 text-white"
@@ -100,12 +103,24 @@
         >
           <div class="flex items-center gap-4">
             <div class="bg-white p-1 rounded-lg shadow-sm">
-              <img src="/MainLogo.png" alt="شعار الشركة" class="h-16 w-auto object-contain" />
+              <img src="/MainLogo.png" alt="شعار المؤسسة" class="h-16 w-auto object-contain" />
             </div>
             <div>
-              <h1 class="text-2xl font-black text-indigo-900 tracking-tight drop-shadow-sm">
-                إيصال استلام أضحية
-              </h1>
+              <div class="flex items-center gap-2">
+                <h1 class="text-2xl font-black text-indigo-900 tracking-tight drop-shadow-sm">
+                  إيصال استلام أضحية
+                </h1>
+                <span
+                  class="text-xs px-2.5 py-1 rounded-md font-bold shadow-sm"
+                  :class="
+                    isBulkReceipt(receipt)
+                      ? 'bg-rose-100 text-rose-700'
+                      : 'bg-indigo-100 text-indigo-700'
+                  "
+                >
+                  {{ isBulkReceipt(receipt) ? 'جهة / مشروع' : 'إيصال فردي' }}
+                </span>
+              </div>
               <p class="text-sm font-bold text-indigo-600 mt-1">
                 تاريخ الإصدار: {{ formatDate(receipt.created_at) }}
               </p>
@@ -130,7 +145,9 @@
 
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner space-y-3">
               <div class="flex justify-between border-b border-gray-200 pb-2">
-                <span class="text-gray-500 font-bold">الاسم الرباعي:</span>
+                <span class="text-gray-500 font-bold">
+                  {{ isBulkReceipt(receipt) ? 'اسم الجهة / المشروع:' : 'الاسم الرباعي:' }}
+                </span>
                 <span class="font-black text-gray-900">{{ receipt.beneficiary?.name }}</span>
               </div>
               <div
@@ -142,9 +159,9 @@
               </div>
               <div class="flex justify-between pb-2" v-if="receipt.beneficiary?.phone">
                 <span class="text-gray-500 font-bold">رقم الهاتف:</span>
-                <span class="font-bold text-gray-900" dir="ltr">{{
-                  receipt.beneficiary.phone
-                }}</span>
+                <span class="font-bold text-gray-900" dir="ltr">
+                  {{ receipt.beneficiary.phone }}
+                </span>
               </div>
             </div>
           </div>
@@ -160,21 +177,29 @@
             >
               <div class="flex justify-between border-b border-emerald-100 pb-2">
                 <span class="text-gray-600 font-bold">نوع الأضحية:</span>
-                <span class="font-black text-emerald-700 bg-white px-2 py-0.5 rounded shadow-sm">{{
-                  receipt.sacrifice_type?.name
-                }}</span>
+                <span class="font-black text-emerald-700 bg-white px-2 py-0.5 rounded shadow-sm">
+                  {{ receipt.sacrifice_type?.name }}
+                </span>
+              </div>
+              <div class="flex justify-between border-b border-emerald-100 pb-2">
+                <span class="text-gray-600 font-bold">العدد (الكمية):</span>
+                <span
+                  class="font-black text-gray-900 bg-white px-3 py-0.5 rounded shadow-sm border border-gray-200 font-mono"
+                >
+                  {{ receipt.quantity || 1 }}
+                </span>
               </div>
               <div class="flex justify-between border-b border-emerald-100 pb-2">
                 <span class="text-gray-600 font-bold">طريقة الدفع:</span>
-                <span class="font-bold text-gray-900">{{
-                  getPaymentMethodLabel(receipt.payment_method)
-                }}</span>
+                <span class="font-bold text-gray-900">
+                  {{ getPaymentMethodLabel(receipt.payment_method) }}
+                </span>
               </div>
               <div class="flex justify-between pb-2">
-                <span class="text-gray-600 font-bold">المبلغ المطلوب:</span>
+                <span class="text-gray-600 font-bold">الإجمالي المطلوب:</span>
                 <span class="font-black text-gray-900 text-lg">
                   {{ receipt.payment_method === 'free' ? '0' : receipt.actual_price }}
-                  <span class="text-sm text-gray-500">ج.س</span>
+                  <span class="text-sm text-gray-500 font-normal">د.ل</span>
                 </span>
               </div>
             </div>
@@ -187,16 +212,16 @@
           >
             <div>
               <span class="text-sm text-indigo-800 font-bold block mb-1">إجمالي مبلغ التقسيط</span>
-              <span class="text-xl font-black text-indigo-900"
-                >{{ receipt.installment_contract.total_amount }} ج.س</span
-              >
+              <span class="text-xl font-black text-indigo-900">
+                {{ receipt.installment_contract.total_amount }} د.ل
+              </span>
             </div>
             <div class="w-px h-10 bg-indigo-200"></div>
             <div>
               <span class="text-sm text-indigo-800 font-bold block mb-1">المُسدد مقدماً</span>
-              <span class="text-xl font-black text-emerald-600"
-                >{{ receipt.installment_contract.paid_amount }} ج.س</span
-              >
+              <span class="text-xl font-black text-emerald-600">
+                {{ receipt.installment_contract.paid_amount }} د.ل
+              </span>
             </div>
             <div class="w-px h-10 bg-indigo-200"></div>
             <div>
@@ -215,7 +240,9 @@
             class="flex justify-between items-end border-t-2 border-dashed border-gray-300 pt-10"
           >
             <div class="text-center w-48">
-              <p class="font-bold text-gray-800 bg-gray-50 py-1 rounded">توقيع المستفيد</p>
+              <p class="font-bold text-gray-800 bg-gray-50 py-1 rounded">
+                {{ isBulkReceipt(receipt) ? 'توقيع المستلم للجهة' : 'توقيع المستفيد' }}
+              </p>
               <p class="mt-8 border-b-2 border-gray-400"></p>
             </div>
 
@@ -223,16 +250,16 @@
               <div
                 class="w-24 h-24 border-2 border-indigo-200 rounded-full mx-auto flex items-center justify-center bg-indigo-50/30"
               >
-                <span class="text-xs text-indigo-300 font-bold rotate-[-15deg]"
-                  >ختم<br />المؤسسة</span
-                >
+                <span class="text-xs text-indigo-300 font-bold rotate-[-15deg]">
+                  ختم<br />المؤسسة
+                </span>
               </div>
             </div>
 
             <div class="text-center w-48">
               <p class="font-bold text-gray-800 bg-gray-50 py-1 rounded">توقيع المنفذ</p>
               <p class="text-sm font-bold text-indigo-600 mt-2 mb-2">
-                {{ receipt.distributor?.full_name }}
+                {{ receipt.distributor?.full_name || receipt.user?.name }}
               </p>
               <p class="border-b-2 border-gray-400"></p>
             </div>
@@ -263,10 +290,15 @@ const getPaymentMethodLabel = (val) => {
   return paymentMethodsMap[val] || val
 }
 
+// دالة ذكية لتحديد نوع الإيصال: يعتبر إيصال جهات إذا لم يوجد رقم وطني أو إذا كانت الكمية أكبر من 1
+const isBulkReceipt = (receipt) => {
+  return !receipt.beneficiary?.national_id || Number(receipt.quantity || 1) > 1
+}
+
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleDateString('ar-EG', {
+  return date.toLocaleDateString('ar-LY', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
